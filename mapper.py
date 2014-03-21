@@ -1,19 +1,24 @@
 #!/usr/bin/python
-#Python Hadoop Mapper
+#A more advanced Mapper, using Python iterators and generators.
 
 import sys
 
-#input comes from STDIN (standard input)
-for line in sys.stdin:
-	line=line.strip()
-	words=line.split()
-	
-	#following section will output each word with a count of 1
-	#if a word appears twice, it will be output twice with a count 1
-	#adding the counts is left upto the reducer
-	for word in words:
-		#write the results to STDOUT
-		#this output will be input to reducer
-		
-		print '%s\t%s' % (word,1) 
+def read_input(file):
+    for line in file:
+        # split the line into words
+        yield line.split()
 
+def main(separator='\t'):
+    # input comes from STDIN (standard input)
+    data = read_input(sys.stdin)
+    for words in data:
+        # write the results to STDOUT (standard output);
+        # what we output here will be the input for the
+        # Reduce step, i.e. the input for reducer.py
+        #
+        # tab-delimited; the trivial word count is 1
+        for word in words:
+            print '%s%s%d' % (word, separator, 1)
+
+if __name__ == "__main__":
+    main()

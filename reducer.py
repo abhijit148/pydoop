@@ -1,39 +1,28 @@
 #!/usr/bin/python
-#Python Reducer Script
+#A more advanced Reducer, using Python iterators and generators.
 
+from itertools import groupby
 from operator import itemgetter
 import sys
 
-current_word=None
-current_count=0
-word=None
+def read_mapper_output(file, separator='\t'):
+    for line in file:
+        yield line.rstrip().split(separator, 1)
 
-#input from STDIN
-for line in sys.stdin:
-	line=line.strip()
-	#parse the output of mapper.py i.e. input to reducer.py
-	word,count=line.split('\t',1)
-	
-	#covert count (string) to int
-	try:
-		count=int(count)
-	except ValueError:
-		#Count was not a number. Ignore.
-		continue
-		
-	#this IF-switch only works because Hadoop sorts map output
-	#by key (here:word_ before it is passed to the reducer
-	
-	if current_word==word:
-		current_count+=count
-	else:
-		if current_word:
-			#write to STDOUT
-			print '%s\t%s' % (current_word,current_count)
-		
-		current_count=count
-		current_word=word
-	
-#For last word (if needed)
-if current_word==word:
-	print '%s\t%s' % (current_word,current_count)	
+def main(separator='\t'):
+    # input comes from STDIN (standard input)
+    data = read_mapper_output(sys.stdin, separator=separator)
+    # groupby groups multiple word-count pairs by word,
+    # and creates an iterator that returns consecutive keys and their group:
+    #   current_word - string containing a word (the key)
+    #   group - iterator yielding all ["&lt;current_word&gt;", "&lt;count&gt;"] items
+    for current_word, group in groupby(data, itemgetter(0)):
+        try:
+            total_count = sum(int(count) for current_word, count in group)
+            print "%s%s%d" % (current_word, separator, total_count)
+        except ValueError:
+            # count was not a number, so silently discard this item
+            pass
+
+if __name__ == "__main__":
+    main()
