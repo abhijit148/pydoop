@@ -1,4 +1,5 @@
-#!usr/bin/env python
+#!/usr/bin/python
+#Python Reducer Script
 
 from operator import itemgetter
 import sys
